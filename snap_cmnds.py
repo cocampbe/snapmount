@@ -113,21 +113,21 @@ def create_snap(src_sid,dest_sid):
 
 
 def link_snap(src_sid,dest_sid):
-  snap_name = "{host}_{dest_sid}_SNAP".format(host=host,dest_sid=dest_sid).upper()
-  src_sg_name = "{src_host}_{src_sid}".format(src_host=sids[src_sid],src_sid=src_sid).upper()
-  dest_sg_name = "{dest_host}_{dest_sid}_SNAP".format(dest_host=host,dest_sid=dest_sid).upper()
+  snap_name = ''.join(host + "_" + dest_sid + "_SNAP").upper()
+  src_sg_name = ''.join(sids[src_sid] + "_" + src_sid).upper()
+  dest_sg_name = ''.join(host + "_" + dest_sid + "_SNAP").upper()
   print "Checking if snapshot is already linked."
   snapvx_link_status = subprocess.Popen(['symsnapvx', '-sid', array_id, 'list', '-sg', src_sg_name, '-snapshot_name', snap_name, '-linked'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   snapvx_link_status_out, snapvx_link_status_err = snapvx_link_status.communicate() 
   if "do not have any Snapvx information" in snapvx_link_status_err:
-    print " * Snap is not linked to an SG. Creating link of {snap_name} to {dest_sg_name}.".format(snap_name=snap_name,dest_sg_name=dest_sg_name)
+    print " * Snap is not linked to an SG. Creating link of " + snap_name + " to " + dest_sg_name + "."
     snapvx_link = subprocess.Popen(['symsnapvx', '-sid', array_id, '-sg', src_sg_name, '-lnsg', dest_sg_name, '-snapshot_name', snap_name, 'link', '-copy', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     snapvx_link.wait() 
     if snapvx_link.returncode != 0:
-      print " * Error linking snap {snap_name} to {dest_sg_name}. Exiting.".format(snap_name=snap_name,dest_sg_name=dest_sg_name)
+      print " * Error linking snap " + snap_name + " to " + dest_sg_name + ". Exiting."
       exit(1)
   else: 
-    print " * Link of {snap_name} to {dest_sg_name} already exists. Continuing...".format(snap_name=snap_name,dest_sg_name=dest_sg_name)
+    print " * Link of " + snap_name + " to " + dest_sg_name + " already exists. Continuing..."
     
 
 def unlink_and_terminate_snap(src_sid,dest_sid):
