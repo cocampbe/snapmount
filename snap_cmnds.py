@@ -81,23 +81,23 @@ def get_source_disk_size(src_sid):
 
 
 def get_target_disk_size(dest_sid):
-  dest_tdev_name = "{host}_{dest_sid}_snap".format(host=host,dest_sid=dest_sid).upper()
-  print " * Getting target device size for {tdev_name}.".format(tdev_name=dest_tdev_name)
+  dest_tdev_name = ''.join(host + "_" + dest_sid + "_snap").upper()
+  print " * Getting target device size for " + dest_tdev_name + "."
   symdev_list = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-identifier', 'device_name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_symdev_list = subprocess.Popen(['grep', '-w', dest_tdev_name], stdin=symdev_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   dev_num = grep_symdev_list.communicate()[0].split()[0].strip()
-  print "   * Sym device name is {dev_num}.".format(dev_num=dev_num)
+  print "   * Sym device name is " + dev_num + "."
   src_device_info = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-devs', dev_num], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_dest_device_info = subprocess.Popen(['grep', '-w', dev_num], stdin=src_device_info.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   dest_dev_size = grep_dest_device_info.communicate()[0].split()[-1].strip()
-  print "   * Sym device size is {dest_dev_size}MB.".format(dest_dev_size=dest_dev_size)
+  print "   * Sym device size is " + dest_dev_size + "MB."
   return dest_dev_size
 
 
 def create_snap(src_sid,dest_sid):
-  snap_name = "{host}_{dest_sid}_snap".format(host=host,dest_sid=dest_sid).upper()
-  src_sg_name = "{src_host}_{src_sid}".format(src_host=sids[src_sid],src_sid=src_sid).upper()
-  print "Checking if snapshot {src_sg_name} exists.".format(src_sg_name=src_sg_name)
+  snap_name = ''.join(host + "_" + dest_sid + "_snap").upper()
+  src_sg_name = ''.join(sids[src_sid] + "_" + src_sid).upper()
+  print "Checking if snapshot " + src_sg_name + " exists."
   snapvx_status = subprocess.Popen(['symsnapvx', '-sid', array_id, 'list', '-sg', src_sg_name, '-snapshot_name', snap_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   snapvx_status.wait()
   if snapvx_status.returncode != 0: 
@@ -105,11 +105,11 @@ def create_snap(src_sid,dest_sid):
     snapvx_establish = subprocess.Popen(['symsnapvx', '-sid', array_id, '-sg', src_sg_name, '-name', snap_name, 'establish', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     snapvx_establish.wait()
     if snapvx_establish.returncode != 0:
-      print " * Error creating snap {snap_name} from {src_sg_name}. Exiting.".format(snap_name=snap_name,src_sg_name=src_sg_name)
+      print " * Error creating snap " + snap_name + " from " + src_sg_name + ". Exiting."
       exit(1)
     symsnapvx_list = subprocess.Popen(['symsnapvx', '-sid', array_id, 'list', '-sg', src_sg_name, '-snapshot_name', snap_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   else:
-    print " * Snap {snap_name} exists. Continuing...".format(snap_name=snap_name)
+    print " * Snap " + snap_name + " exists. Continuing..."
 
 
 def link_snap(src_sid,dest_sid):
