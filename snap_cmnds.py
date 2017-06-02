@@ -39,9 +39,9 @@ def check_snap_tdev(src_sid,dest_sid):
   if grep_symdev_list.returncode != 0:
     print " * Target device does not exist. Creating device {tdev_name}.".format(tdev_name=tdev_name)
     src_dev_size = get_source_disk_size(src_sid)
-    symconf_status = subprocess.Popen(['symconfigure', '-sid', array_id, '-cmd', "create dev count=1,size={src_dev_size}mb,config=tdev,emulation=fba,preallocate size=all,sg={sg_name},device_name={dev_name}".format(src_dev_size=src_dev_size,sg_name=sg_name,tdev_name=tdev_name), 'commit', '-nop'])
+    symconf_status = subprocess.Popen(['symconfigure', '-sid', array_id, '-cmd', "create dev count=1,size=" + src_dev_size + "mb,config=tdev,emulation=fba,preallocate size=all,sg=" + sg_name + ",device_name=" + tdev_name, 'commit', '-nop'])
   else:
-     print " * Device {tdev_name} exists. Continuing...".format(tdev_name=tdev_name)
+     print " * Device " + tdev_name + "exists. Continuing..."
     
 
 def check_snap_tdev_size(src_sid,dest_sid):
