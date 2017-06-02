@@ -14,30 +14,30 @@ def check_sid(sid):
 
 
 def check_snap_sg(dest_sid):
-  sg_name = host + "_" + dest_sid + "_snap".upper()
+  sg_name = ''.join(host + "_" + dest_sid + "_snap").upper()
   print "Checking for SG " + sg_name
   symsg_show = subprocess.Popen(['symsg', '-sid', array_id, 'show', sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   symsg_show.wait()
   if symsg_show.returncode != 0:
-    print " * SG does not exist. Creating SG sg_name."
+    print " * SG does not exist. Creating SG " + sg_name
     symsg_create = subprocess.Popen(['symsg', '-sid', array_id, 'create', sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     symsg_create.wait()
     if symsg_create.returncode != 0:
       print " * Error creating SG. Exiting."
       exit(1)
   else:
-    print " * SG {sg_name} exists. Continuing...".format(sg_name=sg_name)
+    print " * SG " + sg_name + " exists. Continuing..."
 
 
 def check_snap_tdev(src_sid,dest_sid):
-  tdev_name = "{host}_{sid}_snap".format(host=host,sid=dest_sid).upper()
+  tdev_name = ''.join(host + "_" + dest_sid + "_snap").upper()
   sg_name = tdev_name
-  print "Checking if tdev {tdev_name} exists.".format(tdev_name=tdev_name)
+  print "Checking if tdev " + tdev_name + " exists."
   symdev_list = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-identifier', 'device_name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_symdev_list = subprocess.Popen(['grep', '-w', tdev_name], stdin=symdev_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_symdev_list.wait()
   if grep_symdev_list.returncode != 0:
-    print " * Target device does not exist. Creating device {tdev_name}.".format(tdev_name=tdev_name)
+    print " * Target device does not exist. Creating device " + tdev_name + "."
     src_dev_size = get_source_disk_size(src_sid)
     symconf_status = subprocess.Popen(['symconfigure', '-sid', array_id, '-cmd', "create dev count=1,size=" + src_dev_size + "mb,config=tdev,emulation=fba,preallocate size=all,sg=" + sg_name + ",device_name=" + tdev_name, 'commit', '-nop'])
   else:
@@ -45,18 +45,18 @@ def check_snap_tdev(src_sid,dest_sid):
     
 
 def check_snap_tdev_size(src_sid,dest_sid):
-  tdev_name = "{host}_{sid}_snap".format(host=host,sid=dest_sid).upper()
+  tdev_name = ''.join(host + "_" + dest_sid + "_snap").upper()
   sg_name = tdev_name
   print "Checking if source and target tdev sizes match."
   src_dev_size = get_source_disk_size(src_sid)
   dest_dev_size = get_target_disk_size(dest_sid)
   if src_dev_size > dest_dev_size: 
-    print " * Source device is larger than destination device. Attempting to grow target device {tdev_name}.".format(tdev_name=tdev_name)
-    print " * Getting symid for {tdev_name}.".format(tdev_name=tdev_name)
+    print " * Source device is larger than destination device. Attempting to grow target device " + tdev_name + "."
+    print " * Getting symid for " + tdev_name + "."
     symdev_list = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-identifier', 'device_name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     grep_symdev_list = subprocess.Popen(['grep', '-w', tdev_name], stdin=symdev_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     tdev_num = grep_symdev_list.communicate()[0].split()[0]
-    print " * Target device number is tdev_num.".format(tdev_num=tdev_num)
+    print " * Target device number is " + tdev_num + "."
     symdev_resize = subprocess.Popen(['symdev', '-sid', array_id, 'modify', tdev_num, '-tdev', '-cap', src_dev_size, '-captype', 'MB', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     symdev_resize.wait()
     if symdev_resize.returncode != 0:
