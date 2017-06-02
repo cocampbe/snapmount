@@ -9,13 +9,13 @@ host = socket.gethostname().split(".")[0]
 def check_sid(sid):
   if sid not in sids:
     print "Invalid source sid. Valid sids are:"
-    print "   {sids}".format(sids=sids.keys())
+    print "   " + str(sids.keys())
     exit(1)
 
 
 def check_snap_sg(dest_sid):
-  sg_name = "{host}_{sid}_snap".format(host=host,sid=dest_sid).upper()
-  print "Checking for SG {sg_name}.".format(sg_name=sg_name)
+  sg_name = host + "_" + dest_sid + "_snap".upper()
+  print "Checking for SG " + sg_name
   symsg_show = subprocess.Popen(['symsg', '-sid', array_id, 'show', sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   symsg_show.wait()
   if symsg_show.returncode != 0:
