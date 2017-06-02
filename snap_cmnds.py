@@ -60,23 +60,23 @@ def check_snap_tdev_size(src_sid,dest_sid):
     symdev_resize = subprocess.Popen(['symdev', '-sid', array_id, 'modify', tdev_num, '-tdev', '-cap', src_dev_size, '-captype', 'MB', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     symdev_resize.wait()
     if symdev_resize.returncode != 0:
-      print " * Error growing target device {tdev_name}. Exiting.".format(tdev_name=tdev_name)
+      print " * Error growing target device " + tdev_name + ". Exiting."
       exit(1)
   else: 
     print " * Target device size matches source. Continuing..."
     
 
-def get_source_disk_size(source_sid):
-  src_dev_name = "{src_host}_{src_sid}".format(src_host=sids[source_sid],src_sid=source_sid).upper()
-  print " * Getting source device size for {tdev_name}.".format(tdev_name=src_dev_name)
+def get_source_disk_size(src_sid):
+  src_dev_name = ''.join(sids[src_sid] + "_" + src_sid).upper()
+  print " * Getting source device size for " + src_dev_name + "."
   symdev_list = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-identifier', 'device_name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_symdev_list = subprocess.Popen(['grep', '-w', src_dev_name], stdin=symdev_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   dev_num = grep_symdev_list.communicate()[0].split()[0].strip()
-  print "   * Sym device name is {dev_num}.".format(dev_num=dev_num)
+  print "   * Sym device name is " + dev_num + "."
   src_device_info = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-devs', dev_num], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_src_device_info = subprocess.Popen(['grep', '-w', dev_num], stdin=src_device_info.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   src_dev_size = grep_src_device_info.communicate()[0].split()[-1].strip()
-  print "   * Sym device size is {src_dev_size}MB.".format(src_dev_size=src_dev_size)
+  print "   * Sym device size is " + src_dev_size + "MB."
   return src_dev_size
 
 
