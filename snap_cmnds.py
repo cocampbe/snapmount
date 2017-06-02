@@ -1,6 +1,4 @@
-import socket
-import subprocess
-import os
+import socket, subprocess, os
 
 sym_dir = '/opt/emc/SYMCLI/bin'
 os.environ["PATH"] += os.pathsep + sym_dir
