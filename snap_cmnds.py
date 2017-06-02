@@ -131,8 +131,8 @@ def link_snap(src_sid,dest_sid):
     
 
 def unlink_and_terminate_snap(src_sid,dest_sid):
-  snap_name = "{host}_{dest_sid}_snap".format(host=host,dest_sid=dest_sid).upper()
-  src_sg_name = "{src_host}_{src_sid}".format(src_host=sids[src_sid],src_sid=src_sid).upper()
+  snap_name = ''.join(host + "_" + dest_sid + "_snap").upper()
+  src_sg_name = ''.join(sids[src_sid] + "_" + src_sid).upper()
   dest_sg_name = "{dest_host}_{dest_sid}_snap".format(dest_host=host,dest_sid=dest_sid).upper()
   print "Unlinking snap {snap_name} from {src_sg_name}.".format(snap_name=snap_name,src_sg_name=src_sg_name)
   snapvx_unlink = subprocess.Popen(['symsnapvx', '-sid', array_id, '-sg', src_sg_name, '-lnsg', dest_sg_name, '-snapshot_name', snap_name, 'unlink', '-symforce', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
