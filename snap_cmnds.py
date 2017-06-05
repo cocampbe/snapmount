@@ -118,7 +118,7 @@ def link_snap(src_sid,dest_sid):
   snapvx_link_status = subprocess.Popen(['symsnapvx', '-sid', array_id, 'list', '-sg', src_sg_name, '-snapshot_name', snap_name, '-linked'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   snapvx_link_status_out, snapvx_link_status_err = snapvx_link_status.communicate() 
   if "do not have any Snapvx information" in snapvx_link_status_err:
-    print " * Snap is not linked to an SG. Creating link of ", snap_name, " to ", dest_sg_name + "."
+    print " * Snap is not linked to an SG. Creating link of ", snap_name, "to", dest_sg_name + "."
     snapvx_link = subprocess.Popen(['symsnapvx', '-sid', array_id, '-sg', src_sg_name, '-lnsg', dest_sg_name, '-snapshot_name', snap_name, 'link', '-copy', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     snapvx_link.wait() 
     if snapvx_link.returncode != 0:
