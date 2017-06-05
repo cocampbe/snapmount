@@ -37,7 +37,7 @@ def check_snap_tdev(src_sid,dest_sid):
   if grep_symdev_list.returncode != 0:
     print " * Target device does not exist. Creating device", tdev_name + "."
     src_dev_size = get_source_disk_size(src_sid)
-    symconf_status = subprocess.Popen(['symconfigure', '-sid', array_id, '-cmd', "create dev count=1,size=" + src_dev_size + "mb,config=tdev,emulation=fba,preallocate size=all,sg=" + sg_name + ",device_name=" + tdev_name, 'commit', '-nop'])
+    symconf_status = subprocess.Popen(['symconfigure', '-sid', array_id, '-cmd', '"create dev count=1,size="' + src_dev_size + "mb,config=tdev,emulation=fba,preallocate size=all,sg=" + sg_name + ",device_name=" + tdev_name + '"', 'commit', '-nop'])
   else:
      print " * Device", tdev_name, "exists. Continuing..."
     
@@ -159,17 +159,17 @@ def unlink_and_terminate_snap(src_sid,dest_sid):
 def add_sg_to_mv(dest_sid):
   sg_name = ''.join(host + "_" + dest_sid + "_snap").upper()
   parent_sg_name = ''.join(host + "_SG").upper()
-  print "Checking if", sg_name, "is already a child of", parent_sg_name, "."
+  print "Checking if", sg_name, "is already a child of", parent_sg_name + "."
   symsg_parent_info = subprocess.Popen(['symsg', '-sid', array_id, 'show', parent_sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_symsg_parent_info = subprocess.Popen(['grep', '-w', sg_name], stdin=symsg_parent_info.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   if "IsChild" in grep_symsg_parent_info.communicate()[0]: 
-    print " *", sg_name, "is already a child of SG", parent_sg_name," . Continuing..."
+    print " *", sg_name, "is already a child of SG", parent_sg_name + ". Continuing..."
   else: 
-    print " *", sg_name, "is not a child of", parent_sg_name, ". Adding."
+    print " *", sg_name, "is not a child of", parent_sg_name + ". Adding."
     symsg_add_status = subprocess.Popen(['symsg', '-sid', array_id, '-sg', parent_sg_name, 'add', 'sg', sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     symsg_add_status.wait()
     if symsg_add_status.returncode != 0: 
-      print " * Error adding", sg_name, "to", parent_sg_name, ". Exiting."
+      print " * Error adding", sg_name, "to", parent_sg_name + ". Exiting."
       exit(1)
         
     
@@ -241,9 +241,9 @@ def import_activate_vg(dest_sid):
 def deactivate_vg(dest_sid):
   vg_name = "vg" + dest_sid
   vgs_returncode = check_vgs(vg_name)
-  print "Deactivating VG vg{dest_sid}.".format(dest_sid=dest_sid)
+  print "Deactivating VG vg" + dest_sid + "."
   if vgs_returncode == 0:
-    vgchange = subprocess.Popen(['/sbin/vgchange', '-a', 'n', "vg{dest_sid}".format(dest_sid=dest_sid)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    vgchange = subprocess.Popen(['/sbin/vgchange', '-a', 'n', "vg" + dest_sid], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     vgchange.wait()
     if vgchange.returncode != 0:
       print " * Error deactivating volume group. Exiting."
@@ -261,11 +261,11 @@ def check_vgs(vg_name):
 
 
 def get_disk_dev_file(dest_sid):
-  dest_sg_name = "{dest_host}_{dest_sid}_SNAP".format(dest_host=host,dest_sid=dest_sid).upper()
-  print "Getting device file for", dest_sg_name + "."
+  sg_name = ''.join(host + "_" + dest_sid + "_snap").upper()
+  print "Getting device file for", sg_name + "."
   syminq_list = subprocess.Popen(['syminq', '-identifier', 'device_name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_syminq_list = subprocess.Popen(['grep', 'emcpower'], stdin=syminq_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  grep_grep_syminq_list = subprocess.Popen(['grep', '-w', dest_sg_name], stdin=grep_syminq_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  grep_grep_syminq_list = subprocess.Popen(['grep', '-w', sg_name], stdin=grep_syminq_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   try:
     disk_dev_file = grep_grep_syminq_list.communicate()[0].split()[0].strip()
   except:
@@ -285,7 +285,7 @@ def clean_fs(dest_sid):
     lvols = ('data', 'ctl', 'arch')
     for lvol in lvols:
       print "Checking file system /dev/vg" + dest_sid + "/" + lvol + "."
-      fsck = subprocess.Popen(['/sbin/fsck', '-p', "/dev/vg{dest_sid}/{lvol}".format(dest_sid=dest_sid,lvol=lvol)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      fsck = subprocess.Popen(['/sbin/fsck', '-p', "/dev/vg" + dest_sid + "/" + lvol], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       fsck.wait()
       if fsck.returncode == 0:
         print " * File system is clean."
@@ -300,9 +300,9 @@ def mount_lvols(dest_sid):
     print " * Mounting file systems."
     mounts = {'data':'oradata', 'ctl':'oractl', 'arch':'arch'}
     for lvol in mounts:
-      if not os.path.isdir("/{dest_sid}/{sub_folder}".format(dest_sid=dest_sid,sub_folder=mounts[lvol])):
-        mkdir_p("/{dest_sid}/{sub_folder}".format(dest_sid=dest_sid,sub_folder=mounts[lvol]))
-      mount = subprocess.Popen(['/bin/mount', "/dev/vg{dest_sid}/{lvol}".format(dest_sid=dest_sid,lvol=lvol), "/{dest_sid}/{sub_folder}".format(dest_sid=dest_sid,sub_folder=mounts[lvol])], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      if not os.path.isdir(''.join('/' + dest_sid + '/' + mounts[lvol])):
+        os.makedirs(''.join('/' + dest_sid + '/' + mounts[lvol]))
+      mount = subprocess.Popen(['/bin/mount', '/dev/vg' + dest_sid + '/' + lvol, '/' + dest_sid + '/' + mounts[lvol]], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
 def umount_lvols(dest_sid):
@@ -310,7 +310,7 @@ def umount_lvols(dest_sid):
     print "Umounting file systems."
     mounts = ('arch', 'oradata', 'oractl')
     for mount in mounts: 
-      unmount = subprocess.Popen(['/bin/umount', "/{dest_sid}/{mount}".format(dest_sid=dest_sid,mount=mount)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      unmount = subprocess.Popen(['/bin/umount', '/' + dest_sid + '/' + mount], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       unmount.wait()
       if unmount.returncode != 0:
         print " * Error unmounting file system /" + dest_sid + "/" + mount + "."
