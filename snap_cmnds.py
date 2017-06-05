@@ -125,7 +125,7 @@ def link_snap(src_sid,dest_sid):
       print " * Error linking snap ", snap_name, " to ", dest_sg_name, ". Exiting."
       exit(1)
   else: 
-    print " * Link of ", snap_name, " to ", dest_sg_name, " already exists. Continuing..."
+    print " * Link of", snap_name, "to", dest_sg_name, "already exists. Continuing..."
     
 
 def unlink_and_terminate_snap(src_sid,dest_sid):
@@ -157,8 +157,8 @@ def unlink_and_terminate_snap(src_sid,dest_sid):
     
 
 def add_sg_to_mv(dest_sid):
-  dest_sg_name = "{dest_host}_{dest_sid}_SNAP".format(dest_host=host,dest_sid=dest_sid).upper()
-  parent_sg_name = "{dest_host}_SG".format(dest_host=host).upper()
+  dest_sg_name = ''.join(host + "_" + dest_sid + "_snap").upper()
+  parent_sg_name = ''.join(host + "_SG").upper()
   print "Checking if", dest_sg_name, "is already a child of", parent_sg_name, "."
   symsg_parent_info = subprocess.Popen(['symsg', '-sid', array_id, 'show', parent_sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_symsg_parent_info = subprocess.Popen(['grep', '-w', dest_sg_name], stdin=symsg_parent_info.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
