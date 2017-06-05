@@ -35,7 +35,7 @@ def check_snap_tdev(src_sid,dest_sid):
   grep_symdev_list = subprocess.Popen(['grep', '-w', tdev_name], stdin=symdev_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_symdev_list.wait()
   if grep_symdev_list.returncode != 0:
-    print " * Target device does not exist. Creating device", tdev_name, "."
+    print " * Target device does not exist. Creating device", tdev_name + "."
     src_dev_size = get_source_disk_size(src_sid)
     symconf_status = subprocess.Popen(['symconfigure', '-sid', array_id, '-cmd', "create dev count=1,size=" + src_dev_size + "mb,config=tdev,emulation=fba,preallocate size=all,sg=" + sg_name + ",device_name=" + tdev_name, 'commit', '-nop'])
   else:
@@ -49,12 +49,12 @@ def check_snap_tdev_size(src_sid,dest_sid):
   src_dev_size = get_source_disk_size(src_sid)
   dest_dev_size = get_target_disk_size(dest_sid)
   if src_dev_size > dest_dev_size: 
-    print " * Source device is larger than destination device. Attempting to grow target device ", tdev_name, "."
-    print " * Getting symid for ", tdev_name, "."
+    print " * Source device is larger than destination device. Attempting to grow target device ", tdev_name + "."
+    print " * Getting symid for ", tdev_name + "."
     symdev_list = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-identifier', 'device_name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     grep_symdev_list = subprocess.Popen(['grep', '-w', tdev_name], stdin=symdev_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     tdev_num = grep_symdev_list.communicate()[0].split()[0]
-    print " * Target device number is ", tdev_num, "."
+    print " * Target device number is ", tdev_num + "."
     symdev_resize = subprocess.Popen(['symdev', '-sid', array_id, 'modify', tdev_num, '-tdev', '-cap', src_dev_size, '-captype', 'MB', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     symdev_resize.wait()
     if symdev_resize.returncode != 0:
@@ -66,11 +66,11 @@ def check_snap_tdev_size(src_sid,dest_sid):
 
 def get_source_disk_size(src_sid):
   src_dev_name = ''.join(sids[src_sid] + "_" + src_sid).upper()
-  print " * Getting source device size for ", src_dev_name, "."
+  print " * Getting source device size for ", src_dev_name + "."
   symdev_list = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-identifier', 'device_name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_symdev_list = subprocess.Popen(['grep', '-w', src_dev_name], stdin=symdev_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   dev_num = grep_symdev_list.communicate()[0].split()[0].strip()
-  print "   * Sym device name is ", dev_num, "."
+  print "   * Sym device name is ", dev_num + "."
   src_device_info = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-devs', dev_num], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_src_device_info = subprocess.Popen(['grep', '-w', dev_num], stdin=src_device_info.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   src_dev_size = grep_src_device_info.communicate()[0].split()[-1].strip()
@@ -80,11 +80,11 @@ def get_source_disk_size(src_sid):
 
 def get_target_disk_size(dest_sid):
   dest_tdev_name = ''.join(host + "_" + dest_sid + "_snap").upper()
-  print " * Getting target device size for ", dest_tdev_name, "."
+  print " * Getting target device size for ", dest_tdev_name + "."
   symdev_list = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-identifier', 'device_name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_symdev_list = subprocess.Popen(['grep', '-w', dest_tdev_name], stdin=symdev_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   dev_num = grep_symdev_list.communicate()[0].split()[0].strip()
-  print "   * Sym device name is ", dev_num, "."
+  print "   * Sym device name is ", dev_num +  "."
   src_device_info = subprocess.Popen(['symdev', '-sid', array_id, 'list', '-devs', dev_num], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_dest_device_info = subprocess.Popen(['grep', '-w', dev_num], stdin=src_device_info.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   dest_dev_size = grep_dest_device_info.communicate()[0].split()[-1].strip()
@@ -118,7 +118,7 @@ def link_snap(src_sid,dest_sid):
   snapvx_link_status = subprocess.Popen(['symsnapvx', '-sid', array_id, 'list', '-sg', src_sg_name, '-snapshot_name', snap_name, '-linked'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   snapvx_link_status_out, snapvx_link_status_err = snapvx_link_status.communicate() 
   if "do not have any Snapvx information" in snapvx_link_status_err:
-    print " * Snap is not linked to an SG. Creating link of ", snap_name, " to ", dest_sg_name, "."
+    print " * Snap is not linked to an SG. Creating link of ", snap_name, " to ", dest_sg_name + "."
     snapvx_link = subprocess.Popen(['symsnapvx', '-sid', array_id, '-sg', src_sg_name, '-lnsg', dest_sg_name, '-snapshot_name', snap_name, 'link', '-copy', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     snapvx_link.wait() 
     if snapvx_link.returncode != 0:
@@ -131,8 +131,8 @@ def link_snap(src_sid,dest_sid):
 def unlink_and_terminate_snap(src_sid,dest_sid):
   snap_name = ''.join(host + "_" + dest_sid + "_snap").upper()
   src_sg_name = ''.join(sids[src_sid] + "_" + src_sid).upper()
-  dest_sg_name = "{dest_host}_{dest_sid}_snap".format(dest_host=host,dest_sid=dest_sid).upper()
-  print "Unlinking snap", snap_name, "from", src_sg_name, "."
+  dest_sg_name = ''.join(dest_host + "_" + dest_sid + "_snap"
+  print "Unlinking snap", snap_name, "from", src_sg_name + "."
   snapvx_unlink = subprocess.Popen(['symsnapvx', '-sid', array_id, '-sg', src_sg_name, '-lnsg', dest_sg_name, '-snapshot_name', snap_name, 'unlink', '-symforce', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   snapvx_unlink_out,snapvx_unlink_err =  snapvx_unlink.communicate()
   if snapvx_unlink.returncode != 0:
@@ -143,7 +143,7 @@ def unlink_and_terminate_snap(src_sid,dest_sid):
       exit(1)
   else:
     print " * Unlink successful!"
-  print "Terminating snap", snap_name, "."
+  print "Terminating snap", snap_name + "."
   snapvx_terminate = subprocess.Popen(['symsnapvx', '-sid', array_id, '-sg', src_sg_name, '-snapshot_name', snap_name, 'terminate', '-nop'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   snapvx_terminate_out, snapvx_terminate_err = snapvx_terminate.communicate()
   if snapvx_terminate.returncode != 0:
@@ -204,7 +204,7 @@ def disk_cleanup(dest_sid):
   if "Not found" in disk_dev_file:
     print " * No disk found. Continuing..."
   else: 
-    print "Removing disk", disk_dev_file, "."
+    print "Removing disk", disk_dev_file + "."
     remove_disk_status = subprocess.Popen(['/etc/opt/emcpower/emcplun_linux', 'remove', disk_dev_file, '-noprompt'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     remove_disk_status.wait()
     if remove_disk_status.returncode != 0: 
@@ -217,10 +217,10 @@ def import_activate_vg(dest_sid):
   vg_basename = "vg" + dest_sid
   vgs_returncode = check_vgs(vg_basename)
   if vgs_returncode == 0:
-    print " * Volume group", vg_basenamei, "is already imported. Continuing..."
+    print " * Volume group", vg_basename, "is already imported. Continuing..."
   else:
     print "Importing and Activating volume group"
-    print " * Running vgimportclone with basename vg{dest_sid}.".format(dest_sid=dest_sid)
+    print " * Running vgimportclone with basename vg" + dest_sid + "."
     vgimportclone = subprocess.Popen(['/sbin/vgimportclone', '--basevgname', vg_basename, disk_dev_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     vgimportclone.wait()
     if vgimportclone.returncode == 0:
@@ -262,7 +262,7 @@ def check_vgs(vg_name):
 
 def get_disk_dev_file(dest_sid):
   dest_sg_name = "{dest_host}_{dest_sid}_SNAP".format(dest_host=host,dest_sid=dest_sid).upper()
-  print "Getting device file for {dest_sg_name}.".format(dest_sg_name=dest_sg_name)
+  print "Getting device file for", dest_sg_name + "."
   syminq_list = subprocess.Popen(['syminq', '-identifier', 'device_name'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_syminq_list = subprocess.Popen(['grep', 'emcpower'], stdin=syminq_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   grep_grep_syminq_list = subprocess.Popen(['grep', '-w', dest_sg_name], stdin=grep_syminq_list.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -274,7 +274,7 @@ def get_disk_dev_file(dest_sid):
     print " * Device is null. Error getting disk device file. Exiting."
     exit(1)
   else:  
-    print " * Device file is {disk_dev_file}.".format(disk_dev_file=disk_dev_file)
+    print " * Device file is", disk_dev_file + "."
   return disk_dev_file
 
 
@@ -284,7 +284,7 @@ def clean_fs(dest_sid):
   else:
     lvols = ('data', 'ctl', 'arch')
     for lvol in lvols:
-      print "Checking file system /dev/vg{dest_sid}/{lvol}.".format(dest_sid=dest_sid,lvol=lvol)
+      print "Checking file system /dev/vg" + dest_sid + "/" + lvol + "."
       fsck = subprocess.Popen(['/sbin/fsck', '-p', "/dev/vg{dest_sid}/{lvol}".format(dest_sid=dest_sid,lvol=lvol)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       fsck.wait()
       if fsck.returncode == 0:
@@ -313,7 +313,7 @@ def umount_lvols(dest_sid):
       unmount = subprocess.Popen(['/bin/umount', "/{dest_sid}/{mount}".format(dest_sid=dest_sid,mount=mount)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       unmount.wait()
       if unmount.returncode != 0:
-        print " * Error unmounting file system /{dest_sid}/{mount}.".format(dest_sid=dest_sid,mount=mount)
+        print " * Error unmounting file system /" + dest_sid + "/" + mount + "."
         print " * Check that mount is not in use and try again." 
         exit(1)
     print " * Unmount successful!"
