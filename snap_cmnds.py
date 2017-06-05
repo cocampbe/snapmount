@@ -157,25 +157,25 @@ def unlink_and_terminate_snap(src_sid,dest_sid):
     
 
 def add_sg_to_mv(dest_sid):
-  dest_sg_name = ''.join(host + "_" + dest_sid + "_snap").upper()
+  sg_name = ''.join(host + "_" + dest_sid + "_snap").upper()
   parent_sg_name = ''.join(host + "_SG").upper()
-  print "Checking if", dest_sg_name, "is already a child of", parent_sg_name, "."
+  print "Checking if", sg_name, "is already a child of", parent_sg_name, "."
   symsg_parent_info = subprocess.Popen(['symsg', '-sid', array_id, 'show', parent_sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-  grep_symsg_parent_info = subprocess.Popen(['grep', '-w', dest_sg_name], stdin=symsg_parent_info.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  grep_symsg_parent_info = subprocess.Popen(['grep', '-w', sg_name], stdin=symsg_parent_info.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   if "IsChild" in grep_symsg_parent_info.communicate()[0]: 
-    print " *", dest_sg_name, "is already a child of SG", parent_sg_name," . Continuing..."
+    print " *", sg_name, "is already a child of SG", parent_sg_name," . Continuing..."
   else: 
-    print " *", dest_sg_name, "is not a child of", parent_sg_name, ". Adding."
-    symsg_add_status = subprocess.Popen(['symsg', '-sid', array_id, '-sg', parent_sg_name, 'add', 'sg', dest_sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print " *", sg_name, "is not a child of", parent_sg_name, ". Adding."
+    symsg_add_status = subprocess.Popen(['symsg', '-sid', array_id, '-sg', parent_sg_name, 'add', 'sg', sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     symsg_add_status.wait()
     if symsg_add_status.returncode != 0: 
-      print " * Error adding", dest_sg_name, "to", parent_sg_name, ". Exiting."
+      print " * Error adding", sg_name, "to", parent_sg_name, ". Exiting."
       exit(1)
         
     
 def remove_sg_from_mv(dest_sid):
-  sg_name = "{host}_{dest_sid}_SNAP".format(host=host,dest_sid=dest_sid).upper()
-  parent_sg_name = "{dest_host}_SG".format(dest_host=host).upper()
+  sg_name = ''.join(host + "_" + dest_sid + "_snap").upper()
+  parent_sg_name = ''.join(host + "_SG").upper()
   print "Removing", sg_name, "from parent", parent_sg_name, "."
   symsg_remove = subprocess.Popen(['symsg', '-sid', array_id, '-sg', parent_sg_name, 'remove', 'sg', sg_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   symsg_remove_out,symsg_remove_err = symsg_remove.communicate()
